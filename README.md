@@ -4,7 +4,6 @@ A full-stack, AI-powered web application for personal finance analysis, fraud de
 
 **![ExpenseGuard-AI Dashboard]**
 ![alt text](image.png)
-*(**Note:** To get a URL, you can upload your screenshot to the "Issues" tab of your GitHub repo and then copy the image link.)*
 
 ## ✨ Core Features
 
