@@ -2,6 +2,7 @@ import pandas as pd
 import re
 import joblib
 from flask import Flask, request, jsonify
+from prophet import Prophet
 
 print("--- Loading models and utilities... ---")
 
@@ -136,6 +137,70 @@ def upload_csv():
         except Exception as e:
             # This will catch errors like missing columns or bad file types
             return jsonify({"error": f"Error processing file: {str(e)}"}), 500
+        
+@app.route('/forecast', methods=['POST'])
+def get_forecast():
+    # Get the JSON data sent from the front-end
+    # We expect the front-end to send the processed transactions
+    json_data = request.get_json()
+    
+    if not json_data:
+        return jsonify({"error": "No JSON data provided"}), 400
+
+    try:
+        # --- 1. Load Data ---
+        # Convert the list of transaction dictionaries back into a DataFrame
+        df = pd.DataFrame(json_data)
+        
+        # Check for required columns
+        if 'Amount' not in df.columns or 'Time' not in df.columns:
+            return jsonify({"error": "Data must include 'Amount' and 'Time' columns"}), 400
+
+        # --- 2. Prepare Data for Prophet ---
+        # Convert 'Time' (which is in seconds) to a real datetime
+        # We'll assume 'Time' is seconds from the first transaction
+        df['ds'] = pd.to_datetime(df['Time'], unit='s', origin='unix')
+        
+        # Aggregate spending by day
+        # We must select ONLY the ds and Amount columns for aggregation
+        df_prophet = df[['ds', 'Amount']].copy()
+        
+        # We group by the date ('ds') and sum the 'Amount'
+        df_daily = df_prophet.groupby(pd.Grouper(key='ds', freq='D')).agg(y=('Amount', 'sum')).reset_index()
+        
+        # Prophet requires the 'ds' column to be a datetime object
+        df_daily['ds'] = pd.to_datetime(df_daily['ds'])
+
+        if len(df_daily) < 10:
+            # Prophet needs a reasonable amount of data to forecast
+            return jsonify({"error": "Not enough daily transaction data to generate a forecast"}), 400
+
+        # --- 3. Train the Model ---
+        print("Training forecasting model...")
+        model = Prophet(weekly_seasonality=True, daily_seasonality=False)
+        model.fit(df_daily)
+        print("Model training complete.")
+
+        # --- 4. Create Future Predictions ---
+        print("Generating 30-day forecast...")
+        future = model.make_future_dataframe(periods=30)
+        forecast = model.predict(future)
+        print("Forecast complete.")
+        
+        # --- 5. Return the Forecast Data ---
+        # Select only the columns we need for the front-end chart
+        forecast_data = forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']]
+        
+        # Convert datestamps to a simple string format for JSON
+        forecast_data['ds'] = forecast_data['ds'].dt.strftime('%Y-%m-%d')
+        
+        return jsonify({
+            "message": "Forecast generated successfully!",
+            "forecast": forecast_data.to_dict(orient='records')
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Error generating forecast: {str(e)}"}), 500
 
 # --- 5. Run the App ---
 if __name__ == '__main__':
