@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ExpenseGuard-AI Dashboard</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-light">
+
+    <nav class="navbar navbar-dark bg-primary shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-shield-check" viewBox="0 0 16 16" style="margin-right: 8px;">
+                    <path d="M5.338 1.59a61.44 61.44 0 0 0-2.837.856.481.481 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.725 10.725 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.056.237.099.34.113.047.007.093.012.14.012.047 0 .093-.005.14-.012.103-.014.22-.057.34-.113.24-.113.547-.29.893-.533a10.726 10.726 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.481.481 0 0 0-.328-.39c-.95-1.73-2.53-2.942-2.837-.855C9.552 1.29 8.221 1 8 1c-.221 0-1.552.29-2.662.59zM1.723 2.804c.563-1.066 1.659-1.924 2.742-2.377A62.72 62.72 0 0 1 8 0c1.18 0 2.603.23 4.535.827 1.083.453 2.179 1.311 2.742 2.377c.602 1.137 1.036 3.06 1.036 5.564 0 3.82-1.303 6.202-2.73 7.824a11.726 11.726 0 0 1-2.582 2.456c-.31.22-.603.402-.85.55a.5.5 0 0 1-.296.09H8a.5.5 0 0 1-.296-.09c-.247-.148-.54-.33-.85-.55a11.726 11.726 0 0 1-2.582-2.456C1.303 14.586 0 12.184 0 8.364c0-2.504.434-4.427 1.036-5.56z"/>
+                    <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                </svg>
+                ExpenseGuard-AI
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Analyze Your Transactions</h5>
+                        <p class="card-text">Upload your transaction CSV to analyze spending, categorize transactions, and detect fraud.</p>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="csvFileInput" accept=".csv">
+                            <button class="btn btn-primary" type="button" id="uploadButton">
+                                <span id="uploadButtonText">Analyze</span>
+                                <span id="loadingSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="resultsSection" class="d-none">
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Total Transactions</h6>
+                                    <h2 class="card-title text-primary" id="totalTransactions">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h6 class="card-subtitle mb-2 text-muted">Fraudulent Transactions</h6>
+                                    <h2 class="card-title text-danger" id="fraudTransactions">0</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Transaction Log</h5>
+                            <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                                <table class="table table-striped table-hover" id="transactionTable">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Description</th>
+                                            <th>Amount</th>
+                                            <th>Category</th>
+                                            <th>Fraud?</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tableBody">
+                                        </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Spending Forecast</h5>
+                            <button class="btn btn-success" id="forecastButton">
+                                <span id="forecastButtonText">Generate 30-Day Forecast</span>
+                                <span id="forecastSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </button>
+                            <div class="chart-container mt-3 d-none" id="chartContainer">
+                                <canvas id="forecastChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                </div> <div class="alert alert-danger d-none" role="alert" id="errorAlert">
+                    </div>
+
+            </div>
+        </div>
+    </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

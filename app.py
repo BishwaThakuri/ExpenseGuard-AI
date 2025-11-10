@@ -1,7 +1,7 @@
 import pandas as pd
 import re
 import joblib
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from prophet import Prophet
 
 print("--- Loading models and utilities... ---")
@@ -55,8 +55,9 @@ print("Flask app initialized.")
 
 @app.route('/')
 def home():
-    # A simple route to check if the server is running
-    return "ExpenseGuard-AI API is running!"
+    # This tells Flask to find 'index.html' in the 'templates' folder
+    # and return it as the response.
+    return render_template('index.html')
 
 @app.route('/upload_csv', methods=['POST'])
 def upload_csv():

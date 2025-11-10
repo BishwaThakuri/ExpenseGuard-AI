@@ -1,0 +1,41 @@
+/* 1. Set a body background so the glass effect is visible */
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background-attachment: fixed; /* Keeps gradient fixed during scroll */
+}
+
+/* 2. Make Bootstrap's sticky header a glassmorphic element */
+.navbar {
+    background: rgba(255, 255, 255, 0.2); /* Semi-transparent white */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); /* For Safari */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* 3. Apply glassmorphism to all cards */
+.card {
+    background: rgba(255, 255, 255, 0.25) !important; /* Override Bootstrap's opaque bg */
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px); /* For Safari */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    
+    /* A deeper, softer shadow than Bootstrap's default */
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15) !important;
+}
+
+/* 4. Make table header sticky AND glassy */
+.table-responsive .sticky-top {
+    top: -1px; 
+    background: rgba(255, 255, 255, 0.4); /* Slightly less transparent */
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+}
+
+/* 5. Our custom fraud row class (no change, but keep it) */
+.table-danger,
+.table-danger > th,
+.table-danger > td {
+  background-color: #fde4e4 !important;
+  color: #d62828 !important;
+  font-weight: bold;
+}
